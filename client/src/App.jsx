@@ -1,25 +1,15 @@
-// import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-// import Login from './pages/Login';
-// import Register from './pages/Login';
-// import Dashboard from './pages/Dashboard';
-
-// export default function App() {
-//   return (
-//     <Router>
-//       <Routes>
-//         <Route path="/login" element={<Login />} />
-//         <Route path="/register" element={<Register />} />
-//         <Route path="/dashboard" element={<Dashboard />} />
-//         <Route path="*" element={<Login />} />
-//       </Routes>
-//     </Router>
-//   );
-// }
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Auth from './pages/Auth.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 export default function App() {
   return (
-    <div className="p-10 text-3xl font-bold text-red-500">
-      Tailwind V4 Works!
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="*" element={<Auth />} /> 
+      </Routes>
+    </Router>
   );
 }
