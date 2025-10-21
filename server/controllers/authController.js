@@ -19,13 +19,13 @@ export const loginWithGoogle = async (req, res) => {
             { expiresIn: '7d' }
         );
 
-        res.json.status(200).json({
+        res.status(200).json({
             message: 'Google login successful',
             token,
             user: { uid, email, name, picture }
         });
-    } catch (err) {
-        console.error(err)
+    } catch (error) {
+        console.error(error);
         res.status(401).json({ error: 'Invalid or expired Google token' })
     }
 };
