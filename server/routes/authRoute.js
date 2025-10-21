@@ -1,11 +1,9 @@
 import express from 'express';
-import { register, login, googleLogin } from '../controllers/authController';
-import { auth } from '../firebaseAdmin';
+import { loginWithGoogle } from '../controllers/authController';
 
 const authRoute = express.Router();
 
-authRoute.post('/register', register);
-authRoute.post('/login', login);
-authRoute.post('/google-login', googleLogin);
+// POST /api/auth/google
+authRoute.post('/google', loginWithGoogle);
 
 export default authRoute;

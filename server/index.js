@@ -1,10 +1,15 @@
 import express from 'express';
-import authRoute from './routes/authRoute';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/authRoute.js';
 
+dotenv.config();
 const app = express();
-app.use(express.json()); // Required for JSON body parsing
 
-app.use('/api/auth', authRoute);
+app.use(cors());
+app.use(express.json());
 
-const PORT = 5000;
-app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
+app.use('/api/auth', authRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
