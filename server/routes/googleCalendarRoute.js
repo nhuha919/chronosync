@@ -28,7 +28,7 @@ googleCalendarRoute.get("/callback", async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code);
     oauth2Client.setCredentials(tokens);
-    res.json(tokens); // contains access_token + (optional) refresh_token
+    res.json(tokens); // contains access_token + refresh_token
   } catch (err) {
     console.error("OAuth callback error:", err);
     res.status(500).json({ error: "OAuth2 callback failed" });
