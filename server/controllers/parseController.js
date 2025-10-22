@@ -107,14 +107,35 @@ export const parseTask = async (req, res) => {
         // This will be sent in req from frontend 
         const accessToken = process.env.GOOGLE_TEST_TOKEN;
 
-        // Perform action
+        // Schedule event
         if (parsed.intent === 'schedule_event') {
             req.body = { ...parsed, accessToken };
             return addEvent(req, res);
         }
 
+        // Delete event
         if (parsed.intent === 'delete_event') {
-            req.body = { ...parsed, accessToken };
+            // find the event in db
+            const findQuery = {
+                text: `
+                    SELECT google_event_id FROM events
+                    WHERE user_id = $1 
+                      AND title ILIKE $2
+                    ORDER BY ABS(EXTRACT(EPOCH FROM (start_time - NOW()))) ASC
+                    LIMIT 1;
+                `,
+                values: [userId, `%${parsed.title || ''}%`],
+            };
+            const result = await pool.query(findQuery);
+        
+            if (result.rows.length === 0) {
+                return res.status(404).json({ error: 'No matching event found to delete' });
+            }
+        
+            const google_event_id = result.rows[0].google_event_id;
+        
+            // call deleteEvent
+            req.body = { google_event_id, accessToken };
             return deleteEvent(req, res);
         }
 
