@@ -10,11 +10,10 @@ export const verifyToken = (req, res, next) => {
     const token = authHeader.split(' ')[1];
     try {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded;
+        req.user = decodedToken;
         next();
-    } catch {
-        res.status(403).json({
-            error: 'Invalid or expired JWT token'
-        });
+    } catch (error) {
+        console.error('JWT verify error:', error.message, '\nToken:', token);
+        res.status(403).json({ error: 'Invalid or expired JWT token' });
     }
 };
