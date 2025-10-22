@@ -7,6 +7,7 @@ const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 /**
  * POST /api/parse
  * Parse user input text using OpenAI to extract structured task information.
+ * Perform the task based on intent.
  * 
  * Request body:
  * {
