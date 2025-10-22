@@ -26,8 +26,11 @@ export const parseTask = async (req, res) => {
                 {
                     role: 'system',
                     content:
-                        `Extract the task title, date, start_time, end_time, and intent from user input. Intent must be one of: schedule_event, add_task, or null. 
-                        If not found, leave as null. 'Return start_time and end_time in ISO 8601 format (e.g. 2025-10-23T15:00:00Z). Return strictly valid JSON.`
+                        `Extract the task title, date, start_time, end_time, and intent from user input. 
+                        Intent must be one of: schedule_event, add_task, or null. 
+                        If not found, leave as null. 
+                        Return start_time and end_time in ISO 8601 format (e.g. 2025-10-23T15:00:00Z). 
+                        Return strictly valid JSON.`
                 },
                 { role: 'user', content: text },
             ],
