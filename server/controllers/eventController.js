@@ -27,6 +27,8 @@ export const addEvent = async (req, res) => {
     const { title, start_time, end_time, accessToken } = req.body;
     const { userId } = req.user;
 
+    console.log("DEBUG EVENT BODY:", { title, start_time, end_time, accessToken });
+
     if (!title || !start_time || !end_time || !accessToken)
         return res.status(400).json({ error: 'Missing event fields' });
 
@@ -62,5 +64,89 @@ export const addEvent = async (req, res) => {
     } catch (error) {
         console.error('Google Calendar error:', error);
         res.status(500).json({ error: 'Failed to create event' });
+    }
+};
+
+export const deleteEvent = async (req, res) => {
+    const { google_event_id, accessToken } = req.body;
+    const { userId } = req.user;
+
+    if (!google_event_id || !accessToken)
+        return res.status(400).json({ error: 'Missing required fields' });
+
+    try {
+        const auth = new google.auth.OAuth2();
+        auth.setCredentials({ access_token: accessToken });
+        const calendar = google.calendar({ version: 'v3', auth });
+
+        await calendar.events.delete({
+            calendarId: 'primary',
+            eventId: google_event_id,
+        });
+
+        await pool.query(
+            `DELETE FROM events WHERE user_id = $1 AND google_event_id = $2`,
+            [userId, google_event_id]
+        );
+
+        res.status(200).json({ message: 'Event deleted successfully' });
+    } catch (error) {
+        console.error('Delete event error:', error);
+        res.status(500).json({ error: 'Failed to delete event' });
+    }
+};
+
+export const updateEvent = async (req, res) => {
+    const { google_event_id, title, start_time, end_time, accessToken } = req.body;
+    const { userId } = req.user;
+
+    if (!google_event_id || !accessToken)
+        return res.status(400).json({ error: 'Missing required fields' });
+
+    try {
+        const auth = new google.auth.OAuth2();
+        auth.setCredentials({ access_token: accessToken });
+        const calendar = google.calendar({ version: 'v3', auth });
+
+        const eventUpdate = {
+            summary: title,
+            start: { dateTime: start_time },
+            end: { dateTime: end_time },
+        };
+
+        await calendar.events.update({
+            calendarId: 'primary',
+            eventId: google_event_id,
+            resource: eventUpdate,
+        });
+
+        const updated = await pool.query(
+            `UPDATE events
+         SET title = COALESCE($1, title),
+             start_time = COALESCE($2, start_time),
+             end_time = COALESCE($3, end_time)
+         WHERE user_id = $4 AND google_event_id = $5
+         RETURNING *`,
+            [title, start_time, end_time, userId, google_event_id]
+        );
+
+        res.status(200).json({ message: 'Event updated', event: updated.rows[0] });
+    } catch (error) {
+        console.error('Update event error:', error);
+        res.status(500).json({ error: 'Failed to update event' });
+    }
+};
+
+export const listAllEvents = async (req, res) => {
+    const { userId } = req.user;
+    try {
+        const result = await pool.query(
+            `SELECT * FROM events WHERE user_id = $1 ORDER BY start_time ASC`,
+            [userId]
+        );
+        res.status(200).json({ events: result.rows });
+    } catch (error) {
+        console.error('List events error:', error);
+        res.status(500).json({ error: 'Failed to retrieve events' });
     }
 };

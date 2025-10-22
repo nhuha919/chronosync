@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import pool from '../config/db.js';
+import { addEvent, deleteEvent } from './eventController.js';
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -48,17 +49,22 @@ export const parseTask = async (req, res) => {
         const userMessage = await pool.query(insertMessageQuery);
 
         // Call OpenAI 
+        // Note: handle user timezone in frontend, let it be EST for now
         const response = await client.chat.completions.create({
             model: 'gpt-4o-mini',
             messages: [
                 {
                     role: 'system',
                     content:
-                        `Extract the task title, date, start_time, end_time, and intent from user input. 
-                        Intent must be one of: schedule_event, add_task, or null. 
-                        If not found, leave as null. 
-                        Return start_time and end_time in ISO 8601 format (e.g. 2025-10-23T15:00:00Z). 
-                        Return strictly valid JSON.`
+                        `Extract the task title, date, start_time, end_time, and intent from user input.
+                        - Intent must be one of: schedule_event, delete_event, add_task, or null.
+                        - If the user mentions an event or meeting, infer a short descriptive title (e.g. "Meeting with team").
+                        - Always include "title" as a string.
+                        - Return start_time and end_time in ISO 8601 format (e.g. 2025-10-23T15:00:00Z).
+                        - Be aware that the user timezone is 'America/New_York'.
+                        - Always assume the current year is ${new Date().getFullYear()} and today\’s date as reference when interpreting "tomorrow", "next week", etc.
+                        - If a field cannot be determined, set it to null.
+                        - Return strictly valid JSON only.`
                 },
                 { role: 'user', content: text },
             ],
@@ -78,7 +84,7 @@ export const parseTask = async (req, res) => {
                 parsed.end_time = null;
             }
         } else if (!parsed.start_time && parsed.end_time) {
-            const end = new Date(parsed.end);
+            const end = new Date(parsed.end_time);
             if (!isNaN(end)) {
                 const start = new Date(end.getTime() - 60 * 60 * 1000);
                 parsed.start_time = start.toISOString();
@@ -96,6 +102,21 @@ export const parseTask = async (req, res) => {
             values: [userId, JSON.stringify(parsed)],
         };
         await pool.query(insertBotMessageQuery);
+
+        // Access token for Google Calendar, replace in .env
+        // This will be sent in req from frontend 
+        const accessToken = process.env.GOOGLE_TEST_TOKEN;
+
+        // Perform action
+        if (parsed.intent === 'schedule_event') {
+            req.body = { ...parsed, accessToken };
+            return addEvent(req, res);
+        }
+
+        if (parsed.intent === 'delete_event') {
+            req.body = { ...parsed, accessToken };
+            return deleteEvent(req, res);
+        }
 
         res.status(200).json({ parsed });
     } catch (err) {
