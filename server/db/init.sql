@@ -1,3 +1,4 @@
+
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100),
@@ -34,3 +35,6 @@ CREATE TABLE message_intent (
   intent_id INT REFERENCES intents(id),
   PRIMARY KEY (message_id, intent_id)
 );
+
+ALTER TABLE users
+ADD COLUMN firebase_uid VARCHAR(128) UNIQUE;
