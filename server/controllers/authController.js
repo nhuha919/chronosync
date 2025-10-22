@@ -2,6 +2,23 @@ import { auth } from '../config/firebase.js';
 import jwt from 'jsonwebtoken';
 import pool from '../config/db.js';
 
+/**
+ * POST /api/auth/google
+ * Verify Firebase ID token, register user if new, and return a backend JWT.
+ * 
+ * Request body:
+ * {
+ *   "idToken": "<Firebase ID token>"
+ * }
+ * 
+ * Response:
+ * 200 OK
+ * {
+ *   "message": "Google login successful",
+ *   "token": "<backend JWT>",
+ *   "user": { ...user data... }
+ * }
+ */
 export const loginWithGoogle = async (req, res) => {
   try {
     const { idToken } = req.body;

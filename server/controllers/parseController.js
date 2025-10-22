@@ -3,6 +3,34 @@ import pool from '../config/db.js';
 
 const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+/**
+ * POST /api/parse
+ * Parse user input text using OpenAI to extract structured task information.
+ * 
+ * Request body:
+ * {
+ *   "text": "Schedule a meeting tomorrow at 3pm"
+ * }
+ * 
+ * Header:
+ * Authorization: Bearer <JWT>
+ * 
+ * Response:
+ * 200 OK
+ * {
+ *   "parsed": {
+ *     "intent": "schedule_event",
+ *     "title": "Meeting",
+ *     "date": "2025-10-23",
+ *     "start_time": "2025-10-23T15:00:00Z",
+ *     "end_time": "2025-10-23T16:00:00Z"
+ *   }
+ * }
+ * 
+ * Notes:
+ * - Automatically adds one hour to end_time if it is missing but start_time is provided.
+ * - Logs both user input and parsed response in the messages table.
+ */
 export const parseTask = async (req, res) => {
     try {
         const { text } = req.body;
