@@ -27,6 +27,7 @@ export const addEvent = async (req, res) => {
     const { title, start_time, end_time, accessToken } = req.body;
     const { userId } = req.user;
 
+    // for debugging
     console.log("DEBUG EVENT BODY:", { title, start_time, end_time, accessToken });
 
     if (!title || !start_time || !end_time || !accessToken)
@@ -67,6 +68,31 @@ export const addEvent = async (req, res) => {
     }
 };
 
+/**
+ * DELETE /api/events/delete
+ * Delete an existing event from both Google Calendar and the database.
+ * 
+ * Request body:
+ * {
+ *   "google_event_id": "<Google Calendar event ID>",
+ *   "accessToken": "<Google OAuth access token>"
+ * }
+ * 
+ * Header:
+ * Authorization: Bearer <JWT>
+ * 
+ * Example:
+ * {
+ *   "google_event_id": "abcd1234efgh5678",
+ *   "accessToken": "ya29.a0AfH6SM..."
+ * }
+ * 
+ * Response:
+ * 200 OK
+ * {
+ *   "message": "Event deleted successfully"
+ * }
+ */
 export const deleteEvent = async (req, res) => {
     const { google_event_id, accessToken } = req.body;
     const { userId } = req.user;
@@ -96,6 +122,38 @@ export const deleteEvent = async (req, res) => {
     }
 };
 
+/**
+ * PUT /api/events/update
+ * Update an existing Google Calendar event and sync the database.
+ * 
+ * Request body:
+ * {
+ *   "google_event_id": "<Google Calendar event ID>",
+ *   "title": "Updated meeting title",
+ *   "start_time": "2025-10-23T17:00:00Z",
+ *   "end_time": "2025-10-23T18:00:00Z",
+ *   "accessToken": "<Google OAuth access token>"
+ * }
+ * 
+ * Header:
+ * Authorization: Bearer <JWT>
+ * 
+ * Example:
+ * {
+ *   "google_event_id": "abcd1234efgh5678",
+ *   "title": "New Team Sync",
+ *   "start_time": "2025-10-23T17:00:00Z",
+ *   "end_time": "2025-10-23T18:00:00Z",
+ *   "accessToken": "ya29.a0AfH6SM..."
+ * }
+ * 
+ * Response:
+ * 200 OK
+ * {
+ *   "message": "Event updated",
+ *   "event": { ...updated event data... }
+ * }
+ */
 export const updateEvent = async (req, res) => {
     const { google_event_id, title, start_time, end_time, accessToken } = req.body;
     const { userId } = req.user;
@@ -137,6 +195,30 @@ export const updateEvent = async (req, res) => {
     }
 };
 
+/**
+ * GET /api/events
+ * Retrieve all events for the authenticated user from the database.
+ * 
+ * Header:
+ * Authorization: Bearer <JWT>
+ * 
+ * Example (no body needed):
+ * GET http://localhost:5000/api/events
+ * 
+ * Response:
+ * 200 OK
+ * {
+ *   "events": [
+ *     {
+ *       "id": 1,
+ *       "title": "Meeting with team",
+ *       "start_time": "2025-10-23T15:00:00Z",
+ *       "end_time": "2025-10-23T16:00:00Z",
+ *       "google_event_id": "abcd1234efgh5678"
+ *     }
+ *   ]
+ * }
+ */
 export const listAllEvents = async (req, res) => {
     const { userId } = req.user;
     try {
